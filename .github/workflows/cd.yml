@@ -1,0 +1,34 @@
+name: Docker CD (Deploy)
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout do código
+        uses: actions/checkout@v4
+
+      - name: Configurar Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Autenticar no DockerHub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Buildar e Enviar para o DockerHub
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          push: true
+          # Versionamento automático baseado no histórico do GitHub
+          tags: |
+            ${{ secrets.DOCKERHUB_USERNAME }}/meu-app:latest
+            ${{ secrets.DOCKERHUB_USERNAME }}/meu-app:build-${{ github.run_number }}-${{ github.sha }}
+          # Sistema de cache avançado do GitHub Actions
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
