@@ -1,0 +1,30 @@
+name: Docker CI
+
+on:
+  pull_request:
+    branches: [main]
+
+jobs:
+  validate-docker:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout do código
+        uses: actions/checkout@v4
+
+      # Linter: valida se o Dockerfile segue boas práticas de segurança
+      - name: Validar Sintaxe do Dockerfile
+        uses: hadolint/hadolint-action@v3.1.0
+        with:
+          dockerfile: Dockerfile
+
+      - name: Configurar Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      # Build de teste: garante que a imagem compila sem erros
+      - name: Testar Build da Imagem
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          push: false 
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
